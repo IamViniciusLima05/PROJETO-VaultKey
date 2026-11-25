@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VaultKey | Cofre de senhas</title>
+  <meta name="description" content="Cofre de senhas criptografado no navegador, com busca e gerador de senhas seguras.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ===== TRAVA ===== -->
+  <section class="trava" id="tela-trava">
+    <div class="trava__caixa">
+      <svg class="cadeado" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M20 28v-8a12 12 0 0 1 24 0v8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        <rect x="12" y="28" width="40" height="30" rx="8" fill="currentColor"/>
+        <circle cx="32" cy="41" r="4" fill="#0e1116"/><rect x="30" y="43" width="4" height="8" rx="2" fill="#0e1116"/>
+      </svg>
+      <h1>VaultKey</h1>
+      <p class="sub" id="trava-sub">Seu cofre de senhas, criptografado no seu navegador.</p>
+      <form id="form-trava" novalidate>
+        <label>Senha mestra
+          <input id="mestra" type="password" autocomplete="current-password" required>
+        </label>
+        <label id="campo-confirma" hidden>Confirme a senha mestra
+          <input id="confirma" type="password" autocomplete="new-password">
+        </label>
+        <div class="medidor" id="medidor-mestra" hidden><i></i><span></span></div>
+        <p class="erro" id="erro-trava" role="alert"></p>
+        <button class="btn btn--principal" type="submit" id="btn-trava">Desbloquear</button>
+      </form>
+      <p class="nota" id="nota-trava"></p>
+      <button class="link" id="apagar-cofre" hidden>Esqueci a senha mestra (apagar cofre)</button>
+    </div>
+  </section>
+
+  <!-- ===== COFRE ===== -->
+  <div class="app" id="tela-cofre" hidden>
+    <header class="topo">
+      <div class="marca">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 28v-8a12 12 0 0 1 24 0v8" fill="none" stroke="currentColor" stroke-width="6"/><rect x="12" y="28" width="40" height="30" rx="8" fill="currentColor"/></svg>
+        VaultKey
+      </div>
+      <div class="busca">
+        <label class="sr" for="busca">Buscar</label>
+        <input id="busca" type="search" placeholder="Buscar por site, usuário ou nota">
+      </div>
+      <button class="btn btn--principal" id="nova">+ Nova credencial</button>
+      <button class="btn btn--fantasma" id="trancar" title="Trancar cofre">Trancar</button>
+    </header>
+
+    <div class="corpo">
+      <main>
+        <div class="resumo" id="resumo"></div>
+        <ul class="lista" id="lista" aria-live="polite"></ul>
+      </main>
+
+      <aside class="gerador" aria-labelledby="ger-titulo">
+        <h2 id="ger-titulo">Gerador de senhas</h2>
+        <output class="gerada" id="gerada"></output>
+        <div class="medidor" id="medidor-ger"><i></i><span></span></div>
+        <div class="ger-acoes">
+          <button class="btn btn--fantasma" id="regerar">Gerar outra</button>
+          <button class="btn btn--principal" id="copiar-gerada">Copiar</button>
+        </div>
+        <label class="faixa">Tamanho: <b id="tam-valor">16</b>
+          <input id="tamanho" type="range" min="8" max="64" value="16">
+        </label>
+        <div class="opcoes">
+          <label><input type="checkbox" id="op-mai" checked> Maiúsculas (A-Z)</label>
+          <label><input type="checkbox" id="op-min" checked> Minúsculas (a-z)</label>
+          <label><input type="checkbox" id="op-num" checked> Números (0-9)</label>
+          <label><input type="checkbox" id="op-sim" checked> Símbolos (!@#$)</label>
+          <label><input type="checkbox" id="op-amb"> Evitar parecidos (l, 1, O, 0)</label>
+        </div>
+      </aside>
+    </div>
+    <p class="rodape">Criptografia AES-GCM 256 bits com chave derivada por PBKDF2. O cofre tranca sozinho após 5 minutos sem uso.</p>
+  </div>
+
+  <!-- ===== MODAL ===== -->
+  <dialog class="modal" id="modal">
+    <form id="form" novalidate>
+      <h2 id="modal-titulo">Nova credencial</h2>
+      <label>Site ou serviço<input id="f-site" type="text" maxlength="60" placeholder="Ex.: Gmail" required></label>
+      <label>Endereço <small>(opcional)</small><input id="f-url" type="text" maxlength="120" placeholder="https://"></label>
+      <label>Usuário ou e-mail<input id="f-usuario" type="text" maxlength="80" autocomplete="off" required></label>
+      <label>Senha
+        <span class="senha-campo">
+          <input id="f-senha" type="password" maxlength="128" autocomplete="new-password" required>
+          <button type="button" class="mini" id="f-ver">Mostrar</button>
+          <button type="button" class="mini" id="f-gerar">Gerar</button>
+        </span>
+      </label>
+      <div class="medidor" id="medidor-form"><i></i><span></span></div>
+      <label>Notas <small>(opcional)</small><textarea id="f-notas" rows="2" maxlength="300"></textarea></label>
+      <p class="erro" id="erro" role="alert"></p>
+      <div class="modal__acoes">
+        <button type="button" class="btn btn--perigo" id="f-excluir" hidden>Excluir</button>
+        <span class="espaco"></span>
+        <button type="button" class="btn btn--fantasma" id="f-cancelar">Cancelar</button>
+        <button type="submit" class="btn btn--principal">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="js/cripto.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
